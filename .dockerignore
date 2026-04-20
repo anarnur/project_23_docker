@@ -1,0 +1,12 @@
+.git
+__pycache__
+*.pyc
+.env
+.venv
+venv
+*.egg-info
+.pytest_cache
+fine_tuned_model/
+images/
+*.md
+tests/

@@ -1,0 +1,52 @@
+name: Deploy to Railway
+ 
+on:
+  push:
+    branches: [main]
+ 
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+ 
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+ 
+      - name: Lint with ruff
+        run: |
+          pip install ruff
+          ruff check app/ tests/
+ 
+      - name: Run tests
+        run: pytest tests/ -v
+ 
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - name: Build Docker image
+        run: docker build -t genai-api .
+ 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - name: Deploy to Railway
+        uses: bervProject/railway-deploy@main
+        with:
+          railway_token: ${{ secrets.RAILWAY_TOKEN }}
+          service: ${{ secrets.RAILWAY_SERVICE }}
+ 
+      - name: Smoke test
+        run: |
+          sleep 20
+          curl --fail "${{ secrets.RAILWAY_PUBLIC_URL }}/health"
