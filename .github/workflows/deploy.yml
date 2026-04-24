@@ -10,7 +10,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
@@ -44,11 +45,13 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Deploy to Railway
-        run: railway up --detach
+        # Флаг --service указывает Railway, какой именно контейнер обновлять
+        run: railway up --detach --service "project_23_docker"
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
       - name: Smoke test
         run: |
-          sleep 20
-          curl --fail "${{ secrets.RAILWAY_PUBLIC_URL }}/health"
+          sleep 30
+          # Используем прямую ссылку, чтобы не зависеть от переменных окружения GitHub
+          curl --fail "https://project23docker-production.up.railway.app/health"
